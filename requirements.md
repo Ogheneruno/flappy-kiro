@@ -91,6 +91,8 @@ Flappy Kiro is an arcade-style endless-runner browser game where players control
 │   ├── ghosty.png      # Ghost character sprite
 │   ├── jump.wav        # Jump sound effect
 │   └── game_over.wav   # Game over sound effect
+├── tests/              # Property-based and integration tests
+├── vitest.config.js    # Vitest test runner configuration
 ├── requirements.md     # This file
 ├── design.md           # Technical design document
 └── README.md           # Project overview

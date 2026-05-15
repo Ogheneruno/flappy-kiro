@@ -26,6 +26,8 @@ An arcade-style endless-runner browser game where you guide Ghosty, a friendly g
 │   └── game_over.wav   # Game over sound effect
 ├── img/
 │   └── example-ui.png  # Screenshot reference
+├── tests/              # Property-based and integration tests (Vitest + fast-check)
+├── vitest.config.js    # Vitest configuration
 ├── requirements.md     # Functional & non-functional requirements
 ├── design.md           # Technical design document
 └── README.md           # This file
@@ -54,6 +56,15 @@ const CONFIG = {
 Click the ⚙ gear icon next to the game to open a settings panel with sliders for real-time tuning. Changes apply instantly — no reload needed. Use "Reset to Defaults" to snap back to `config.js` values.
 
 **Workflow:** experiment with sliders → find values you like → update `config.js` to make them permanent.
+
+## Testing
+
+```bash
+npm test            # Run all tests (single pass)
+npm run test:watch  # Run tests in watch mode
+```
+
+Tests use [Vitest](https://vitest.dev/) with [fast-check](https://github.com/dubzzz/fast-check) for property-based testing. They live in the `tests/` directory and validate physics, collision, scoring, state machine, and configuration invariants.
 
 ## Resources
 
