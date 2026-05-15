@@ -1,0 +1,22 @@
+{
+  "enabled": true,
+  "name": "Update Docs on Source Change",
+  "description": "When source files (JS, HTML, CSS, or config files) are edited, ask the agent to review the changes and update the README.md or design.md documentation to reflect the current state of the project.",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "*.js",
+      "*.html",
+      "*.css",
+      "config.js",
+      "package.json"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A source file was just edited. Review the change and determine if the README.md or design.md documentation needs to be updated to stay accurate. If the change affects project structure, configuration options, how-to-play instructions, or any documented behavior, update the relevant documentation file(s). Keep documentation concise and consistent with the existing style. If the change is purely internal (e.g., a minor refactor with no user-facing impact), no documentation update is needed."
+  },
+  "workspaceFolderName": "kiro-introductions",
+  "shortName": "update-docs-on-change"
+}

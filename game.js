@@ -18,7 +18,12 @@ let ghosty = {
 let pipes = [];
 let clouds = [];
 let score = 0;
-let highScore = parseInt(localStorage.getItem('flappyKiroHigh')) || 0;
+let highScore = 0;
+try {
+    highScore = parseInt(localStorage.getItem('flappyKiroHigh')) || 0;
+} catch (e) {
+    highScore = 0;
+}
 let gameState = 'waiting'; // waiting, playing, gameover
 let frameCount = 0;
 let ghostyImage = new Image();
@@ -26,6 +31,7 @@ let ghostyLoaded = false;
 
 // Load ghosty image
 ghostyImage.onload = () => { ghostyLoaded = true; };
+ghostyImage.onerror = () => { ghostyLoaded = false; };
 ghostyImage.src = 'assets/ghosty.png';
 
 // Load sounds
@@ -36,10 +42,12 @@ const gameOverSound = new Audio('assets/game_over.wav');
 function initClouds() {
     clouds = [];
     for (let i = 0; i < CONFIG.cloudCount; i++) {
+        const width = 60 + Math.random() * 40; // 60-100px
         clouds.push({
-            x: Math.random() * canvas.width,
-            y: Math.random() * (canvas.height * 0.6),
-            width: 60 + Math.random() * 40,
+            x: Math.random() * CONFIG.canvasWidth,
+            y: Math.random() * (CONFIG.canvasHeight * 0.6),
+            width: width,
+            height: width * 0.4, // height = 40% of width
             speed: CONFIG.cloudMinSpeed + Math.random() * (CONFIG.cloudMaxSpeed - CONFIG.cloudMinSpeed)
         });
     }
@@ -49,18 +57,19 @@ function initClouds() {
 function drawCloud(cloud) {
     ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
     const w = cloud.width;
-    const h = w * 0.5;
+    const h = cloud.height;
     const x = cloud.x;
     const y = cloud.y;
 
+    // Render cloud using ellipse primitives
     ctx.beginPath();
-    ctx.ellipse(x, y, w * 0.35, h * 0.35, 0, 0, Math.PI * 2);
+    ctx.ellipse(x + w * 0.5, y + h * 0.5, w * 0.35, h * 0.45, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.beginPath();
-    ctx.ellipse(x - w * 0.2, y + h * 0.1, w * 0.25, h * 0.28, 0, 0, Math.PI * 2);
+    ctx.ellipse(x + w * 0.25, y + h * 0.55, w * 0.25, h * 0.35, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.beginPath();
-    ctx.ellipse(x + w * 0.2, y + h * 0.05, w * 0.28, h * 0.3, 0, 0, Math.PI * 2);
+    ctx.ellipse(x + w * 0.7, y + h * 0.5, w * 0.28, h * 0.38, 0, 0, Math.PI * 2);
     ctx.fill();
 }
 
@@ -120,6 +129,41 @@ function drawPipe(pipe) {
     ctx.fillRect(pipe.x - capOverhang, bottomY, CONFIG.pipeWidth + capOverhang * 2, capHeight);
 }
 
+// Draw overlay
+function drawOverlay() {
+    if (gameState === 'waiting') {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 36px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Flappy Kiro', canvas.width / 2, canvas.height / 2 - 40);
+
+        ctx.font = '20px Arial';
+        ctx.fillText('Click or press Space to start', canvas.width / 2, canvas.height / 2 + 10);
+
+        ctx.font = '16px Arial';
+        ctx.fillText('Guide Ghosty through the pipes!', canvas.width / 2, canvas.height / 2 + 45);
+    }
+
+    if (gameState === 'gameover') {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 36px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Game Over', canvas.width / 2, canvas.height / 2 - 30);
+
+        ctx.font = '22px Arial';
+        ctx.fillText(`Score: ${score}`, canvas.width / 2, canvas.height / 2 + 10);
+
+        ctx.font = '18px Arial';
+        ctx.fillText('Click or press Space to restart', canvas.width / 2, canvas.height / 2 + 50);
+    }
+}
+
 // Spawn pipe
 function spawnPipe() {
     const minTop = 60;
@@ -169,7 +213,11 @@ function jump() {
 
     if (gameState === 'playing') {
         ghosty.velocity = CONFIG.jumpForce;
-        try { jumpSound.currentTime = 0; jumpSound.play(); } catch (e) {}
+        try {
+            jumpSound.currentTime = 0;
+            const p = jumpSound.play();
+            if (p && p.catch) { p.catch(() => {}); }
+        } catch (e) {}
     }
 
     if (gameState === 'gameover') {
@@ -200,10 +248,16 @@ function gameOver() {
     gameState = 'gameover';
     if (score > highScore) {
         highScore = score;
-        localStorage.setItem('flappyKiroHigh', highScore);
+        try {
+            localStorage.setItem('flappyKiroHigh', highScore);
+        } catch (e) {}
     }
     updateScoreBar();
-    try { gameOverSound.currentTime = 0; gameOverSound.play(); } catch (e) {}
+    try {
+        gameOverSound.currentTime = 0;
+        const p = gameOverSound.play();
+        if (p && p.catch) { p.catch(() => {}); }
+    } catch (e) {}
 }
 
 // Main game loop
@@ -216,15 +270,17 @@ function gameLoop() {
     for (let cloud of clouds) {
         cloud.x -= cloud.speed;
         if (cloud.x + cloud.width < 0) {
-            cloud.x = canvas.width + cloud.width;
-            cloud.y = Math.random() * (canvas.height * 0.6);
+            cloud.x = CONFIG.canvasWidth;
+            cloud.y = Math.random() * (CONFIG.canvasHeight * 0.6);
         }
         drawCloud(cloud);
     }
 
     if (gameState === 'playing') {
-        // Update ghosty
+        // Update ghosty - semi-implicit Euler: velocity before position
         ghosty.velocity += CONFIG.gravity;
+        // Cap maximum downward velocity at 12 pixels per frame
+        if (ghosty.velocity > 12) ghosty.velocity = 12;
         ghosty.y += ghosty.velocity;
 
         // Spawn pipes
@@ -265,37 +321,7 @@ function gameLoop() {
     drawGhosty();
 
     // Draw overlays
-    if (gameState === 'waiting') {
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        ctx.fillStyle = 'white';
-        ctx.font = 'bold 36px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText('Flappy Kiro', canvas.width / 2, canvas.height / 2 - 40);
-
-        ctx.font = '20px Arial';
-        ctx.fillText('Click or press Space to start', canvas.width / 2, canvas.height / 2 + 10);
-
-        ctx.font = '16px Arial';
-        ctx.fillText('Guide Ghosty through the pipes!', canvas.width / 2, canvas.height / 2 + 45);
-    }
-
-    if (gameState === 'gameover') {
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        ctx.fillStyle = 'white';
-        ctx.font = 'bold 36px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText('Game Over', canvas.width / 2, canvas.height / 2 - 30);
-
-        ctx.font = '22px Arial';
-        ctx.fillText(`Score: ${score}`, canvas.width / 2, canvas.height / 2 + 10);
-
-        ctx.font = '18px Arial';
-        ctx.fillText('Click or press Space to restart', canvas.width / 2, canvas.height / 2 + 50);
-    }
+    drawOverlay();
 
     requestAnimationFrame(gameLoop);
 }

@@ -21,10 +21,13 @@ const sliders = [
     { id: 'hitboxInsetSlider', display: 'hitboxInsetVal', key: 'hitboxInset', transform: v => parseInt(v) },
 ];
 
-// Attach event listeners to all sliders
+// Attach event listeners to all sliders and initialize display values
 sliders.forEach(({ id, display, key, transform }) => {
     const slider = document.getElementById(id);
     const valueEl = document.getElementById(display);
+
+    // Initialize display value from current slider value
+    valueEl.textContent = slider.value;
 
     slider.addEventListener('input', () => {
         const rawValue = slider.value;

@@ -1,0 +1,23 @@
+{
+  "enabled": true,
+  "name": "Code Quality Review",
+  "description": "Analyzes modified source code for potential improvements when files are saved. Reviews for code smells, design patterns, and best practices, then generates suggestions for improving readability, maintainability, and performance while maintaining existing functionality.",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "*.js",
+      "*.ts",
+      "*.jsx",
+      "*.tsx",
+      "*.html",
+      "*.css"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Analyze the modified code for potential improvements. Review for: 1) Code smells (duplicated code, long methods, large classes, dead code), 2) Design pattern opportunities (where patterns could simplify or improve the code), 3) Best practices (naming conventions, error handling, separation of concerns), 4) Readability improvements (clearer variable names, better comments, simplified logic), 5) Maintainability concerns (tight coupling, missing abstractions, hard-coded values), 6) Performance optimizations (unnecessary computations, memory leaks, inefficient algorithms). Provide concise, actionable suggestions that maintain existing functionality. Prioritize the most impactful improvements."
+  },
+  "workspaceFolderName": "kiro-introductions",
+  "shortName": "code-quality-review"
+}
